@@ -3,7 +3,6 @@ name: Zbuduj Dyktowanie
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
@@ -66,8 +65,9 @@ jobs:
           name: Dyktowanie-${{ matrix.arch }}
           path: Dyktowanie-${{ matrix.arch }}.zip
 
+  # Wydanie powstaje z pliku VERSION: nowa wersja = nowe wydanie, ta sama wersja = podmiana paczek.
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -79,6 +79,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" Dyktowanie-x64.zip Dyktowanie-arm64.zip \
-            --repo "$GITHUB_REPOSITORY" --title "Dyktowanie $GITHUB_REF_NAME" \
+          TAG="v$(tr -d ' \r\n' < VERSION)"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" Dyktowanie-x64.zip Dyktowanie-arm64.zip --clobber --repo "$GITHUB_REPOSITORY"
+            exit 0
+          fi
+          gh release create "$TAG" Dyktowanie-x64.zip Dyktowanie-arm64.zip --target "$GITHUB_SHA" \
+            --repo "$GITHUB_REPOSITORY" --title "Dyktowanie $TAG" \
             --notes "Dwie paczki: **Dyktowanie-x64.zip** dla zwyklych komputerow (Intel/AMD) i **Dyktowanie-arm64.zip** dla komputerow z procesorem ARM (np. Snapdragon). Instrukcja jest w srodku kazdej paczki (INSTRUKCJA.txt)."
