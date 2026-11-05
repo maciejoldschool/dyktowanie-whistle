@@ -1,0 +1,82 @@
+DYKTOWANIE — mów zamiast pisać (Windows)
+=========================================
+
+Przytrzymaj lewy Ctrl + lewy Shift i mów. Puść — tekst sam wklei się tam,
+gdzie stoi kursor: w mailu, dokumencie, czacie, przeglądarce.
+Rozpoznawanie mowy działa na Twoim komputerze. Nagrania nie są nigdzie wysyłane.
+
+
+1. KTÓRA WERSJA?
+----------------
+Ustawienia Windows > System > Informacje > „Typ systemu”:
+  • „procesor x64”                 -> Dyktowanie-x64.exe   (większość komputerów: Intel, AMD)
+  • „procesor oparty na ARM”       -> Dyktowanie-arm64.exe (np. laptopy ze Snapdragonem)
+
+
+2. PIERWSZE URUCHOMIENIE
+------------------------
+1) Rozpakuj zip do dowolnego folderu, np. Dokumenty\Dyktowanie.
+   (Nie uruchamiaj programu bezpośrednio z wnętrza zipa.)
+2) Kliknij dwukrotnie Dyktowanie-x64.exe (albo -arm64.exe).
+3) Windows może pokazać niebieskie okno „System Windows ochronił ten komputer”.
+   To dlatego, że program nie ma płatnego podpisu cyfrowego.
+   Kliknij „Więcej informacji”, potem „Uruchom mimo to”.
+4) Na dole ekranu pojawi się szary pasek „Ładowanie modelu Whistle…”.
+   Za pierwszym razem program pobiera model mowy (ok. 20 MB) — potrzebny internet.
+   Później działa także bez internetu.
+5) Gdy pasek zmieni się na zielony „Dyktowanie gotowe” — można mówić.
+
+
+3. UŻYWANIE
+-----------
+  • Kliknij tam, gdzie ma się pojawić tekst.
+  • Przytrzymaj LEWY Ctrl + LEWY Shift  -> czerwony pasek „Nagrywam…”, mów.
+  • Puść klawisze                       -> niebieski „Rozpoznaję…”, tekst się wkleja.
+  • Zwykłe skróty dalej działają: jeśli w trakcie naciśniesz inną literę
+    (np. Ctrl+Shift+T), nagranie się anuluje.
+  • Program nie ma okna — działa w tle. Zamykasz go w Menedżerze zadań
+    (Ctrl+Shift+Esc > „Dyktowanie” > Zakończ zadanie).
+
+
+4. USTAWIENIA (plik ustawienia.txt)
+-----------------------------------
+Przy pierwszym starcie obok programu pojawia się plik ustawienia.txt.
+Otwórz go Notatnikiem, zmień i uruchom program ponownie. Możesz ustawić:
+  • jezyk     = pl  (albo en, de, fr, es, it, nl, auto)
+  • klawisze  = lewy_ctrl + lewy_shift  (albo np. samo: prawy_ctrl)
+  • slowa     = nazwy własne, które program ma lepiej rozpoznawać,
+                np.  slowa = Krzysztof, Biedronka, Photoshop
+  • spacja_na_koncu, przywracaj_schowek, statystyki = tak / nie
+
+
+5. URUCHAMIANIE RAZEM Z WINDOWS (opcjonalnie)
+---------------------------------------------
+Naciśnij Win+R, wpisz  shell:startup  i Enter.
+Do otwartego folderu wklej SKRÓT do programu
+(prawy przycisk na pliku .exe > Pokaż więcej opcji > Utwórz skrót, potem przenieś skrót).
+
+
+6. GDY COŚ NIE DZIAŁA
+---------------------
+  • „Brak mikrofonu” -> Ustawienia > Prywatność i zabezpieczenia > Mikrofon:
+    włącz „Zezwalaj aplikacjom klasycznym na dostęp do mikrofonu”.
+  • Ciągle „Ładowanie modelu” / błąd pobierania -> sprawdź internet
+    (pierwszy start) i uruchom program ponownie.
+  • Tekst nie wkleja się w jakimś programie -> ten program pewnie działa
+    jako administrator. Uruchom wtedy Dyktowanie też jako administrator.
+  • Ctrl+Shift przełącza układ klawiatury -> zmień „klawisze” w ustawienia.txt,
+    np. na  prawy_ctrl.
+  • Antywirus blokuje program -> program nasłuchuje klawiatury (żeby wiedzieć,
+    kiedy trzymasz Ctrl+Shift), więc niektóre antywirusy są czujne.
+    Kod jest jawny: https://github.com/maciejoldschool/dyktowanie-whistle
+  • Szczegóły błędów są w pliku dyktowanie.log obok programu.
+
+
+7. PRYWATNOŚĆ
+-------------
+Nagrania i tekst nie opuszczają komputera. Internet jest potrzebny tylko
+przy pierwszym starcie (pobranie modelu). Biblioteka Whistle domyślnie wysyła
+anonimowe statystyki (nazwa funkcji, wersja, system — bez nagrań i tekstu);
+wyłączysz je w ustawienia.txt:  statystyki = nie
+
+Model rozpoznawania mowy: Whistle od Cactus Compute (cactuscompute.com).

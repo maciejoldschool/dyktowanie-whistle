@@ -1,0 +1,84 @@
+name: Zbuduj Dyktowanie
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            arch: x64
+          - runner: windows-11-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    env:
+      NEEDLE_TELEMETRY: "0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          architecture: ${{ matrix.arch }}
+
+      - name: Biblioteki
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install cactus-needle numpy sounddevice keyboard pyinstaller
+          python -c "import platform, sys; print(platform.machine(), sys.version)"
+
+      - name: Budowanie exe
+        run: >
+          python -m PyInstaller --noconfirm --clean --onefile --windowed
+          --name Dyktowanie-${{ matrix.arch }}
+          --collect-data needle
+          --hidden-import needle.agent.whistle --hidden-import needle.agent.fetch --hidden-import needle._telemetry
+          --collect-submodules huggingface_hub --collect-all hf_xet --collect-all _sounddevice_data
+          dyktowanie.pyw
+
+      - name: Samotest exe (silnik i model na tym procesorze)
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "dist\Dyktowanie-${{ matrix.arch }}.exe" -ArgumentList "--test" -Wait -PassThru
+          Get-Content dist\dyktowanie.log
+          if ($p.ExitCode -ne 0) { throw "exe zwrocil kod $($p.ExitCode)" }
+          if (-not (Select-String -Path dist\dyktowanie.log -Pattern "TEST OK")) { throw "brak TEST OK w logu" }
+
+      - name: Paczka zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory pkg | Out-Null
+          Copy-Item "dist\Dyktowanie-${{ matrix.arch }}.exe" pkg\
+          Copy-Item INSTRUKCJA.txt pkg\
+          Compress-Archive -Path pkg\* -DestinationPath "Dyktowanie-${{ matrix.arch }}.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dyktowanie-${{ matrix.arch }}
+          path: Dyktowanie-${{ matrix.arch }}.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Wydanie z paczkami
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" Dyktowanie-x64.zip Dyktowanie-arm64.zip \
+            --repo "$GITHUB_REPOSITORY" --title "Dyktowanie $GITHUB_REF_NAME" \
+            --notes "Dwie paczki: **Dyktowanie-x64.zip** dla zwyklych komputerow (Intel/AMD) i **Dyktowanie-arm64.zip** dla komputerow z procesorem ARM (np. Snapdragon). Instrukcja jest w srodku kazdej paczki (INSTRUKCJA.txt)."
